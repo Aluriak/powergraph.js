@@ -12,6 +12,16 @@ open:
 	xdg-open site/index.html
 
 
+get-powergrasp-output:
+	cp ~/packages/powergrasp/out/out.bbl data/test.bbl
+
+
+make-bbl:
+	python make_from_bubble.py data/test.bbl examples/automade/code.js
+
+
+automade:
+	make all INDIR=automade
 basics:
 	make all INDIR=basics
 handmade:

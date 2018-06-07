@@ -8,3 +8,14 @@ Install the needed javascript files in `site/js/`:
 
 ## examples
 See `Makefile` for automatic setup of site example. For instance, `make basics` for a basic usage of Cytoscape.js.
+
+## bubble to cytoscape.js
+The `make_from_bubble.py` python script compiles any bubble file into a `code.js` equivalent.
+Use `make make-bbl` to put the `data/test.bbl` equivalent into the [automade](examples/automade) example, and `make automade` to load this example.
+Then open the webpage with `make open`.
+
+## Method & Rant
+- use compounds to simulate power-nodes ; [it's limited to rectangle shape](https://github.com/cytoscape/cytoscape.js/issues/2129) giving a weird-looking powergraph
+- use [cose-bilkent](https://github.com/cytoscape/cytoscape.js-cose-bilkent) layout, which do not gives tremendous results but is the best available
+- self-loops on compounds works unbelievably bad, because they are rendered using the compounds center as endpoints. As a consequence, the compounds size modifies the edge shape. If the compound is too big, the edge disappear behind the compound.
+- The CyOog convention (color cliques in green) has been kept as a workaround.
