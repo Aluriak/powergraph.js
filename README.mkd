@@ -1,0 +1,10 @@
+# Power Graph with Cytoscape
+Proof of concept for the visualization of [Power Graph](https://en.wikipedia.org/wiki/Power%5Fgraph%5Fanalysis) with [cytoscape.js](http://js.cytoscape.org).
+
+## setup
+Install the needed javascript files in `site/js/`:
+- [cytoscape.min.js](https://github.com/cytoscape/cytoscape.js/tree/master/dist)
+- [cytoscape-cose-bilkent.js](https://github.com/cytoscape/cytoscape.js-cose-bilkent/blob/master/cytoscape-cose-bilkent.js) module, improving compound support
+
+## examples
+See `Makefile` for automatic setup of site example. For instance, `make basics` for a basic usage of Cytoscape.js.
