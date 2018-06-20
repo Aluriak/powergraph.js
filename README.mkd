@@ -14,6 +14,15 @@ The `make_from_bubble.py` python script compiles any bubble file into a `code.js
 Use `make make-bbl` to put the `data/test.bbl` equivalent into the [automade](examples/automade) example, and `make automade` to load this example.
 Then open the webpage with `make open`.
 
+## Bubble extensions
+### False edges
+False edges are given in the bubble file with the FALSEEDGE and FALSEPOWEREDGE lines, as shown in [`data/test-falsedge.bbl`](data/test-falsedge.bbl) example.
+This is currently handled by the compiler bubble to js, in two different manners (depends of a flag hardcoded in the code) :
+
+1. the false edges are kept hidden, until the mouse goes over the involved poweredge (quasi-biclique) or powernode (quasi-clique)
+2. the false edges are shown, and grow in width when hovered
+
+
 ## Method & Rant
 - use compounds to simulate power-nodes ; [it's limited to rectangle shape](https://github.com/cytoscape/cytoscape.js/issues/2129) giving a weird-looking powergraph
 - use [cose-bilkent](https://github.com/cytoscape/cytoscape.js-cose-bilkent) layout, which do not gives tremendous results but is the best available
