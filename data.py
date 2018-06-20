@@ -3,14 +3,20 @@ from itertools import count
 _next_uid = count(1)
 next_uid = lambda: next(_next_uid)
 
+def _attrs_to_json(attrs:dict):
+    return ', '.join(f"'{k}': " + (f"'{v}'" if isinstance(v, str) else str(v)) for k, v in attrs.items())
 
-def JS_NODE_LINE(id:str, parent:str=None, clique:bool=False) -> str:
+
+def JS_NODE_LINE(id:str, parent:str=None, clique:bool=False, falsedges:iter=()) -> str:
     attrs = {'id': id}
     if parent:
-        attrs['parent'] = parent
+        attrs['parent'] = str(parent)
     if clique:
         attrs['type'] = 'clique'
-    return ' '*8 + "{{ data: {{ {} }} }},".format(', '.join(f"'{k}': '{v}'" for k, v in attrs.items()))
+    falsedges = tuple(falsedges)
+    if falsedges:
+        attrs['falsedges'] = list(map(list, falsedges))
+    return ' '*8 + "{{ data: {{ {} }} }},".format(_attrs_to_json(attrs))
 
 def JS_EDGE_LINE(source:str, target:str, ispoweredge:bool, isreflexive:bool=False,
                  id:str or int='', label:str='', attrs:dict={}) -> str:
@@ -38,10 +44,19 @@ def JS_EDGE_LINE(source:str, target:str, ispoweredge:bool, isreflexive:bool=Fals
         end += " } },"
     id = str(id if id else next_uid())
     if attrs:
-        attrs = ', ' + ', '.join(f"'{k}': '{v}'" for k, v in attrs.items())
+        attrs = ', ' + _attrs_to_json(attrs)
     else:
         attrs = ''
     return ' '*8 + f"{{ data: {{ source: '{source}', target: '{target}'" + attrs + end
+
+def JS_FALSEDGE_LINE(source:str, target:str, id:str or int='') -> str:
+    """
+
+    >>> JS_EDGE_LINE('a', 'b')
+    "        { data: { source: 'a', target: 'b', type: 'falsedge' } },"
+
+    """
+    return ' '*8 + f"{{ data: {{ source: '{source}', target: '{target}', type: 'falsedge' }} }},"
 
 
 JS_FOOTER = """
@@ -74,6 +89,60 @@ JS_FOOTER = """
     tilingPaddingHorizontal: 10,
   }
 });
+
+
+
+""".strip().splitlines(False)
+
+JS_MOUSEOVER_WIDTH_CALLBACKS = """
+// Callbacks for showing and hiding the false edges
+var callback_add_false_edges = function(evt) {
+    evt.target.animate({ style: { 'width': 5 } });
+    //var falsedges = evt.target.data('falsedges')
+    //for (var idx=0, item; item = falsedges[idx]; idx++) {
+    //    cy.$('node[id="' + item[0] + '"] -> node[id="' + item[1] + '"]').animate({ style: { 'width': 5 } });
+    //}
+};
+var callback_remove_false_edges = function(evt) {
+    evt.target.animate({ style: { 'width': 0.5 } });
+    //var falsedges = evt.target.data('falsedges')
+    //for (var idx=0, item; item = falsedges[idx]; idx++) {
+    //    cy.$('node[id="' + item[0] + '"] -> node[id="' + item[1] + '"]').animate({ style: { 'width': 0.5 } });
+    //}
+};
+// Apply the callbacks when hovering the objects
+cy.on('mouseover', 'edge[type="falsedge"]', callback_add_false_edges);
+cy.on('mouseout', 'edge[type="falsedge"]', callback_remove_false_edges);
+
+""".strip().splitlines(False)
+
+JS_MOUSEOVER_SHOW_CALLBACKS = """
+// Callbacks for showing and hiding the false edges
+var callback_add_false_edges = function(evt) {
+    var falsedges = evt.target.data('falsedges')
+    // var falsedges = evt.target.data('falsedges_by_id')
+    for (var idx=0, item; item = falsedges[idx]; idx++) {
+        // console.log("Looping: index ", idx, "	item" + item);
+        // cy.$('#' + item).addClass('highlighted-falsedge')
+        cy.add({ data: {source: item[0], target: item[1], type: 'falsedge'}})
+        // cy.$('#' + item).animate({ style: { 'width': 5 } });
+    }
+};
+var callback_remove_false_edges = function(evt) {
+    var falsedges = evt.target.data('falsedges')
+    for (var idx=0, item; item = falsedges[idx]; idx++) {
+        // console.log("Looping: index ", idx, "\titem" + item);
+        // cy.$('#' + item).addClass('highlighted-falsedge')
+        cy.remove(cy.$('edge[type="falsedge"]'))
+        // cy.$('#' + item).animate({ style: { 'width': 1 } });
+    }
+};
+// Apply the callbacks when hovering the objects
+cy.on('mouseover', 'edge[falsedges]', callback_add_false_edges);
+cy.on('mouseover', 'node[falsedges]', callback_add_false_edges);
+cy.on('mouseout', 'edge[falsedges]', callback_remove_false_edges);
+cy.on('mouseout', 'node[falsedges]', callback_remove_false_edges);
+
 """.strip().splitlines(False)
 
 
@@ -136,9 +205,35 @@ var cy = window.cy = cytoscape({
             'width': 'data(width)',
             'target-arrow-shape': 'none',
             'source-arrow-shape': 'none',
-            'color': 'black',
+            'line-color': 'black',
             'source-endpoint': 'outside-to-line',
             'target-endpoint': 'outside-to-line',
+        }
+    },
+    {
+        selector: 'edge[type="incomplete-poweredge"]',
+        css: {
+            // 'width': '8',
+            'width': 'data(width)',
+            'target-arrow-shape': 'none',
+            'source-arrow-shape': 'none',
+            'line-color': 'red',
+            'source-endpoint': 'outside-to-line',
+            'target-endpoint': 'outside-to-line',
+        }
+    },
+    {
+        selector: 'edge[type="falsedge"]',
+        css: {
+            'line-color': 'red',
+            'width': 0.5,
+        }
+    },
+    {
+        selector: 'edge[type="highlighted-falsedge"]',
+        css: {
+            'line-color': 'red',
+            'width': 5,
         }
     },
     {
@@ -178,6 +273,12 @@ var cy = window.cy = cytoscape({
     },
     {
         selector: 'node[type="clique"]',
+        css: {
+            'border-color': 'green',
+        }
+    },
+    {
+        selector: 'node[type="quasi-clique"]',
         css: {
             'border-color': 'green',
         }
