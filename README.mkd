@@ -1,5 +1,5 @@
 # Power Graph with Cytoscape
-Proof of concept for the visualization of [Power Graph](https://en.wikipedia.org/wiki/Power%5Fgraph%5Fanalysis) with [cytoscape.js](http://js.cytoscape.org).
+Proof of concept for the visualization of [Power Graph](https://en.wikipedia.org/wiki/Power%5Fgraph%5Fanalysis) with [cytoscape.js](http://js.cytoscape.org). The living implementation is in [bubbletools](https://github.com/aluriak/bubble-tools).
 
 ## setup
 Install the needed javascript files in `site/js/`:
